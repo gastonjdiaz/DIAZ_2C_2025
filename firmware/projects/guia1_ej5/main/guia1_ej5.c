@@ -26,14 +26,47 @@
 /*==================[inclusions]=============================================*/
 #include <stdio.h>
 #include <stdint.h>
+
+#include "gpio_mcu.h"
 /*==================[macros and definitions]=================================*/
 
 /*==================[internal data definition]===============================*/
-
+typedef struct
+{
+	gpio_t pin;			/*!< GPIO pin number */
+	io_t dir;			/*!< GPIO direction '0' IN;  '1' OUT*/
+} gpioConf_t;
 /*==================[internal functions declaration]=========================*/
-
+void mostrarDigito(uint8_t digito, gpioConf_t *arreglo)
+{
+	for (uint8_t i = 0; i < 4; i++)
+	{
+		if (digito & 1 << i)
+		{
+			GPIOOn(arreglo[i].pin);
+		}
+		else
+		{	
+			GPIOOff(arreglo[i].pin);
+		}
+		
+	}
+}
 /*==================[external functions definition]==========================*/
 void app_main(void){
-	printf("Hello world!\n");
+
+	gpioConf_t vector[4] = {
+		{GPIO_20, GPIO_OUTPUT},
+		{GPIO_21, GPIO_OUTPUT},
+		{GPIO_22, GPIO_OUTPUT},
+		{GPIO_23, GPIO_OUTPUT}
+	};
+
+	for (uint8_t i = 0; i < 4; i++)
+	{
+		GPIOInit(vector[i].pin, vector[i].dir);
+	}
+
+	mostrarDigito(7, vector);	
 }
 /*==================[end of file]============================================*/
