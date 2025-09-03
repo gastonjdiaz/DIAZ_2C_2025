@@ -106,6 +106,6 @@ void app_main(void){
 	}
 
 	//mostrarDigito(7, vector);	
-	mostrarNumeroEnPantalla(137, 3, vector, grupo);
+	mostrarNumeroEnPantalla(382, 3, vector, grupo);
 }
 /*==================[end of file]============================================*/
