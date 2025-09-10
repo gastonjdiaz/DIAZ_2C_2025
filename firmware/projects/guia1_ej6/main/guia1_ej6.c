@@ -7,10 +7,18 @@
  * <a href="https://drive.google.com/...">Operation Example</a>
  *
  * @section hardConn Hardware Connection
- *
- * |    Peripheral  |   ESP32   	|
- * |:--------------:|:--------------|
- * | 	PIN_X	 	| 	GPIO_X		|
+ * 
+ * |   Display      |   EDU-CIAA	|
+ * |:--------------:|:-------------:|
+ * | 	Vcc 	    |	5V      	|
+ * | 	BCD1		| 	GPIO_20		|
+ * | 	BCD2	 	| 	GPIO_21		|
+ * | 	BCD3	 	| 	GPIO_22		|
+ * | 	BCD4	 	| 	GPIO_23		|
+ * | 	SEL1	 	| 	GPIO_19		|
+ * | 	SEL2	 	| 	GPIO_18		|
+ * | 	SEL3	 	| 	GPIO_9		|
+ * | 	Gnd 	    | 	GND     	|
  *
  *
  * @section changelog Changelog
@@ -37,6 +45,13 @@ typedef struct
 	io_t dir;			/*!< GPIO direction '0' IN;  '1' OUT*/
 } gpioConf_t;
 /*==================[internal functions declaration]=========================*/
+
+/**
+ * @brief Enciende/apaga GPIOs según el valor del dígito
+ * 
+ * @param digito Número a mostrar
+ * @param arreglo Arreglo de GPIOs configurado 
+ */
 void mostrarDigito(uint8_t digito, gpioConf_t *arreglo)
 {
 	for (uint8_t i = 0; i < 4; i++)
@@ -52,6 +67,15 @@ void mostrarDigito(uint8_t digito, gpioConf_t *arreglo)
 		
 	}
 }
+/**
+ * @brief Convierte un numero a un arreglo BCD
+ * 
+ * @param data Numero a convertir.
+ * @param digits Cantidad de dígitos del número.
+ * @param bcd_number Arreglo cargado que es pasado por referencia.
+ * 
+ * @returns 0 si es sin error, o.c. código de error. Actualmente solo 0.
+ */
 int8_t convertToBcdArray(uint32_t data, uint8_t digits, uint8_t *bcd_number)
 {
 	for (uint8_t i = digits - 1; i >= 0 && data > 0; i--)
@@ -62,6 +86,15 @@ int8_t convertToBcdArray(uint32_t data, uint8_t digits, uint8_t *bcd_number)
 
 	return 0;
 }
+/**
+ * @brief Muestra en display de 7 segmentos un número 
+ * 
+ * @param numero Numero.
+ * @param digits Cantidad de dígitos del número.
+ * @param segmentos Arreglo con los segmentos cargados.
+ * @param grupo Arreglo con los grupos para manejar los segmentos.
+ * 
+ */
 void mostrarNumeroEnPantalla(int32_t numero, uint8_t digits, gpioConf_t *segmentos, gpioConf_t *grupo)
 {
 	int8_t error;
