@@ -101,7 +101,7 @@ void app_main(void){
 	config.mode = TOGGLE;
 	config.n_led = 2;
 	config.periodo = 500;
-	config.n_ciclos = 15;
+	config.n_ciclos = 10;
 
 	ledControlFunction(&config);
 }
