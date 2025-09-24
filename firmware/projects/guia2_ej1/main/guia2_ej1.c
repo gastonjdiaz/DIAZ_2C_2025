@@ -32,9 +32,11 @@
 #include "freertos/task.h"
 #include "led.h"
 #include "switch.h"
+#include "hc_sr04.h"
+#include "lcditse0803.h"
 /*==================[macros and definitions]=================================*/
 #define CONFIG_SWITCH_READ_PERIOD 100
-#define CONFIG_BLINK_PERIOD_LED_2 1500
+#define CONFIG_MEASUREMENT_PERIOD 1000
 #define CONFIG_BLINK_PERIOD_LED_3 500
 /*==================[internal data definition]===============================*/
 TaskHandle_t led1_task_handle = NULL;
@@ -44,6 +46,7 @@ TaskHandle_t led3_task_handle = NULL;
 uint8_t _tecla;
 bool _medicionActivada = true;
 bool _hold = false;
+uint16_t _distanciaCentimetros = 0;
 /*==================[internal functions declaration]=========================*/
 static void LeerTeclas(void *pvParameter){
 	SwitchesInit();
@@ -61,30 +64,76 @@ static void LeerTeclas(void *pvParameter){
 	}
 }
 
-static void Led2Task(void *pvParameter){
+static void Medir(void *pvParameter){
     while(true){
-        printf("LED_2 ON\n");
-        LedOn(LED_2);
-        vTaskDelay(CONFIG_BLINK_PERIOD_LED_2 / portTICK_PERIOD_MS);
-        printf("LED_2 OFF\n");
-        LedOff(LED_2);
-        vTaskDelay(CONFIG_BLINK_PERIOD_LED_2 / portTICK_PERIOD_MS);
+
+        if(_medicionActivada)
+            _distanciaCentimetros = HcSr04ReadDistanceInCentimeters();
+
+        vTaskDelay(CONFIG_MEASUREMENT_PERIOD/ portTICK_PERIOD_MS);
     }
 }
 
-static void Led3Task(void *pvParameter){
+static void EncenderLEDs(void *pvParameter){
     while(true){
-        printf("LED_3 ON\n");
-        LedOn(LED_3);
-        vTaskDelay(CONFIG_BLINK_PERIOD_LED_3 / portTICK_PERIOD_MS);
-        printf("LED_3 OFF\n");
-        LedOff(LED_3);
-        vTaskDelay(CONFIG_BLINK_PERIOD_LED_3 / portTICK_PERIOD_MS);
+        if (_medicionActivada)
+        {
+            if (_distanciaCentimetros < 10)
+            {
+                LedOff(LED_1);
+                LedOff(LED_2);
+                LedOff(LED_3);
+            }
+            else if (_distanciaCentimetros < 20)
+            {
+                LedOn(LED_1);
+                LedOff(LED_2);
+                LedOff(LED_3);
+            }
+            else if (_distanciaCentimetros < 30)
+            {
+                LedOn(LED_1);
+                LedOn(LED_2);
+                LedOff(LED_3);
+            }
+            else 
+            {
+                LedOn(LED_1);
+                LedOn(LED_2);
+                LedOn(LED_3);
+            }
+            
+        }
+        else
+        {
+            LedOff(LED_1);
+            LedOff(LED_2);
+            LedOff(LED_3);
+        }
+
+        vTaskDelay(CONFIG_MEASUREMENT_PERIOD/ portTICK_PERIOD_MS);
     }
+}
+static void ControlPantalla(void *pvParameter)
+{
+    if (!_medicionActivada)
+    {
+        LcdItsE0803Off();
+    }
+    else if(!_hold) 
+    {
+        LcdItsE0803Write(_distanciaCentimetros);
+    }
+    vTaskDelay(CONFIG_MEASUREMENT_PERIOD/ portTICK_PERIOD_MS);
 }
 /*==================[external functions definition]==========================*/
 void app_main(void){
     LedsInit();
+    HcSr04Init(GPIO_3, GPIO_2);
+    SwitchesInit();
+    LcdItsE0803Init();
+
+
     //xTaskCreate(&Led1Task, "LED_1", 512, NULL, 5, &led1_task_handle);
     //xTaskCreate(&Led2Task, "LED_2", 512, NULL, 5, &led2_task_handle);
     //xTaskCreate(&Led3Task, "LED_3", 512, NULL, 5, &led3_task_handle);
