@@ -39,9 +39,10 @@
 #define CONFIG_MEASUREMENT_PERIOD 1000
 #define CONFIG_BLINK_PERIOD_LED_3 500
 /*==================[internal data definition]===============================*/
-TaskHandle_t led1_task_handle = NULL;
-TaskHandle_t led2_task_handle = NULL;
-TaskHandle_t led3_task_handle = NULL;
+TaskHandle_t LeerTeclas_task_handle = NULL;
+TaskHandle_t Medir_task_handle = NULL;
+TaskHandle_t EncenderLEDs_task_handle = NULL;
+TaskHandle_t ControlLCD_task_handle = NULL;
 
 uint8_t _tecla;
 bool _medicionActivada = true;
@@ -114,7 +115,7 @@ static void EncenderLEDs(void *pvParameter){
         vTaskDelay(CONFIG_MEASUREMENT_PERIOD/ portTICK_PERIOD_MS);
     }
 }
-static void ControlPantalla(void *pvParameter)
+static void ControlLCD(void *pvParameter)
 {
     if (!_medicionActivada)
     {
@@ -134,9 +135,10 @@ void app_main(void){
     LcdItsE0803Init();
 
 
-    //xTaskCreate(&Led1Task, "LED_1", 512, NULL, 5, &led1_task_handle);
-    //xTaskCreate(&Led2Task, "LED_2", 512, NULL, 5, &led2_task_handle);
-    //xTaskCreate(&Led3Task, "LED_3", 512, NULL, 5, &led3_task_handle);
+    xTaskCreate(&LeerTeclas, "LeerTeclas", 512, NULL, 5, &LeerTeclas_task_handle);
+    xTaskCreate(&Medir, "Medir", 512, NULL, 5, &Medir_task_handle);
+    xTaskCreate(&EncenderLEDs, "EncenderLEDs", 512, NULL, 5, &EncenderLEDs_task_handle);
+    xTaskCreate(&ControlLCD, "ControlLCD", 512, NULL, 5, &ControlLCD_task_handle);
 }
 
 /*==================[end of file]============================================*/
