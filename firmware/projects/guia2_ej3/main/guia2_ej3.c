@@ -34,6 +34,7 @@
 #include "hc_sr04.h"
 #include "lcditse0803.h"
 #include "timer_mcu.h"
+#include "uart_mcu.h"
 /*==================[macros and definitions]=================================*/
 #define CONFIG_SWITCH_READ_PERIOD 100
 #define CONFIG_MEASUREMENT_PERIOD 1000
@@ -44,6 +45,7 @@
 TaskHandle_t Medir_task_handle = NULL;
 TaskHandle_t EncenderLEDs_task_handle = NULL;
 TaskHandle_t ControlLCD_task_handle = NULL;
+TaskHandle_t UART_task_handle = NULL;
 
 uint8_t _tecla;
 bool _medicionActivada = true;
@@ -55,9 +57,11 @@ static void Medir(void *pvParameter)
     while (true)
     {
 
-        if (_medicionActivada)
+        if (_medicionActivada){
             _distanciaCentimetros = HcSr04ReadDistanceInCentimeters();
-
+			UartSendString(UART_PC, (char*)UartItoa(_distanciaCentimetros, 10));
+			UartSendString(UART_PC, " cm \r\n");
+			}
        // vTaskDelay(CONFIG_MEASUREMENT_PERIOD / portTICK_PERIOD_MS);
 	   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     }
@@ -134,6 +138,10 @@ void FuncTimerA(void* param){
 	vTaskNotifyGiveFromISR(EncenderLEDs_task_handle, pdFALSE);   
 	vTaskNotifyGiveFromISR(ControlLCD_task_handle, pdFALSE);   
 }
+void FuncUart(void* param){
+	uint8_t caracter;
+	UartReadByte(UART_PC, &caracter);
+}
 /*==================[external functions definition]==========================*/
 void app_main(void)
 {
@@ -144,6 +152,13 @@ void app_main(void)
         .param_p = NULL
     };
 
+	serial_config_t my_uart = {
+		.port = UART_PC,
+		.baud_rate = 9600,
+		.func_p = FuncUart,
+		.param_p = NULL
+	};
+
     LedsInit();
     HcSr04Init(GPIO_3, GPIO_2);
     SwitchesInit();
@@ -152,10 +167,12 @@ void app_main(void)
     LcdItsE0803Init();
 
 	TimerInit(&timer_medicion);
+	UartInit(&my_uart);
 	
     xTaskCreate(&Medir, "Medir", 512, NULL, 5, &Medir_task_handle);
     xTaskCreate(&EncenderLEDs, "EncenderLEDs", 512, NULL, 5, &EncenderLEDs_task_handle);
     xTaskCreate(&ControlLCD, "ControlLCD", 512, NULL, 5, &ControlLCD_task_handle);
+	//xTaskCreate(&ControlLCD, "UART", 512, NULL, 5, &ControlLCD_task_handle);
 
 
 	TimerStart(timer_medicion.timer);
