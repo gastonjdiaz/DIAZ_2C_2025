@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <ctype.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "led.h"
@@ -141,6 +142,18 @@ void FuncTimerA(void* param){
 void FuncUart(void* param){
 	uint8_t caracter;
 	UartReadByte(UART_PC, &caracter);
+    switch (tolower(caracter))
+    {
+        case 'o':
+            Tecla1();
+            break;
+        case 'h':
+            Tecla2();
+            break;
+        default:
+            break;
+    }
+
 }
 /*==================[external functions definition]==========================*/
 void app_main(void)
@@ -172,7 +185,6 @@ void app_main(void)
     xTaskCreate(&Medir, "Medir", 512, NULL, 5, &Medir_task_handle);
     xTaskCreate(&EncenderLEDs, "EncenderLEDs", 512, NULL, 5, &EncenderLEDs_task_handle);
     xTaskCreate(&ControlLCD, "ControlLCD", 512, NULL, 5, &ControlLCD_task_handle);
-	//xTaskCreate(&ControlLCD, "UART", 512, NULL, 5, &ControlLCD_task_handle);
 
 
 	TimerStart(timer_medicion.timer);
