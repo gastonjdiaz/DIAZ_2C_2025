@@ -4,6 +4,10 @@
  *
  * Originalmente pensado usando Serial Plotter pero cambiamos a
  * Serial Osciloscope.
+ * 
+ * Grafica un ECG cargado en memoria a través del conversor de DA, que es enviado
+ * al canal 0 el cual es conectado al canal 1 usado para leer mediante el conversor 
+ * AD y graficado por puerto serie.
  *
  *
  * @section hardConn Hardware Connection
